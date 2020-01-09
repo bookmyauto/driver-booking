@@ -1,0 +1,22 @@
+driver format in firebase
+
+driver:
+	#number:
+		status: 
+		user:
+		fare:
+		to:
+		from:
+
+
+user format in firebase:
+
+user:
+	#number:
+		status:
+		driver:
+		request: []
+		to:
+		from:
+		fare:
+		
