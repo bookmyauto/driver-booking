@@ -1,4 +1,10 @@
 import constant as C
+import json
+import config
+import requests
+import logging
+
+
 class Firebase:
 
     @staticmethod
@@ -13,12 +19,12 @@ class Firebase:
                     payload["user"]         = C.USER_FREE
                     payload["bookingId"]    = C.NO_BOOKING
                     payload["fare"]         = C.NO_FARE
-                    payload["from_lon"]     = C.NO_FROM
-                    payload["from_lat"]     = C.NO_FROM
-                    payload["to_lon"]       = C.NO_TO
-                    payload["to_lat"]       = C.NO_TO
+                    payload["fromLon"]     = C.NO_FROM
+                    payload["fromLat"]     = C.NO_FROM
+                    payload["toLon"]       = C.NO_TO
+                    payload["toLat"]       = C.NO_TO
                     payload                 = json.dumps(payload)
-                    response                = requests.put(config.FIREBASE_DRIVER + driver_number + ".json", data  = payload)
+                    response                = requests.put(config.FIREBASE_DRIVER + str(driver_number) + ".json", data  = payload)
                 response    = dict(response.json())
                 return response
             else:
@@ -29,21 +35,16 @@ class Firebase:
             return []
     
     @staticmethod
-    def confirm_user_booking(user_number, driver_number)):
+    def confirm_user_booking(user_number, driver_number, driver_name, vehicle):
         try:
             payload                     = {}
             payload["status"]           = C.USER_BOOKED
+            payload["driver"]           = int(driver_number)
+            payload["driver_name"]      = driver_name
+            payload["vehicle"]          = vehicle
+            payload["requester"]        = []
             payload                     = json.dumps(payload)
-            response                    = requests.put(config.FIREBASE_USER + user_number + "/status.json", data = payload)
-            if response.status_code == 200:
-                return 1
-            else:
-                logging.debug("Error in confirming user booking")
-                return 0
-            payload                     = {}
-            payload["driver"]           = driver_number
-            payload                     = json.dumps(payload)
-            response                    = requests.put(config.FIREBASE_USER + user_number + "/driver.json", data = payload)
+            response                    = requests.patch(config.FIREBASE_USER + str(user_number) + ".json", data = payload)
             if response.status_code == 200:
                 return 1
             else:
@@ -54,52 +55,24 @@ class Firebase:
             return 0
 
     @staticmethod
-    def confirm_driver_booking(driver_number):
-        try:
-            payload                     = {}
-            payload["status"]           = C.DRIVER_ACCEPT
-            payload                     = json.dumps(payload)
-            response                    = requests.put(config.FIREBASE_DRIVER + driver_number + "/status.json", data = payload)
-            if response.status_code == 200:
-                return 1
-            else:
-                logging.debug("Error in confirming driver booking")
-                return 0
-        except Exception as e:
-            logging.error("Error while confirming driver booking in firebase database of drivers: " + str(e))
-            return 0
-
-    @staticmethod
-    def reject(driver_number):
-        payload                     = {}
-        payload["status"]           = C.DRIVER_FREET
-        payload                     = json.dumps(payload)
-            response                = requests.put(config.FIREBASE_DRIVER + driver_number + "/status.json", data = payload)
-            if response.status_code == 200:
-                return 1
-            else:
-                logging.debug("Error in rejecting booking")
-                return 0
-        except Exception as e:
-            logging.error("Error while rejecting booking in firebase database of drivers: " + str(e))
-            return 0
-
-    @staticmethod
     def reset_user(user_number):
         try:
             payload                     = {}
             payload["driver"]           = C.DRIVER_FREE
-            payload["status"]           = C.USER_FREEE
+            payload["status"]           = C.USER_FREE
             payload["bookingId"]        = C.NO_BOOKING
             payload["requester"]        = []
             payload["fare"]             = C.NO_FARE
-            payload["from_lon"]         = C.NO_FROM
-            payload["from_lat"]         = C.NO_FROM
-            payload["to_lon"]           = C.NO_TO
-            payload["to_lat"]           = C.NO_TO
+            payload["seats"]            = C.NO_SEATS
+            payload["fromLon"]          = C.NO_FROM
+            payload["fromLat"]          = C.NO_FROM
+            payload["toLon"]            = C.NO_TO
+            payload["toLat"]            = C.NO_TO
+            payload["driver_name"]      = C.NO_NAME
+            payload["vehicle"]          = C.NO_VEHICLE
 
             payload                     = json.dumps(payload)
-            response                    = requests.put(config.FIREBASE_USER + user_number + ".json", data = payload)
+            response                    = requests.put(config.FIREBASE_USER + str(user_number) + ".json", data = payload)
             if response.status_code == 200:
                 return 1
             else:
@@ -118,12 +91,13 @@ class Firebase:
             payload["user"]         = C.USER_FREE
             payload["bookingId"]    = C.NO_BOOKING
             payload["fare"]         = C.NO_FARE
-            payload["from_lon"]     = C.NO_FROM
-            payload["from_lat"]     = C.NO_FROM
-            payload["to_lon"]       = C.NO_TO
-            payload["to_lat"]       = C.NO_TO
+            payload["seats"]        = C.NO_SEATS
+            payload["fromLon"]     = C.NO_FROM
+            payload["fromLat"]     = C.NO_FROM
+            payload["toLon"]       = C.NO_TO
+            payload["toLat"]       = C.NO_TO
             payload                 = json.dumps(payload)
-            response                = requests.put(config.FIREBASE_DRIVER + driver_number + ".json", data  = payload)
+            response                = requests.put(config.FIREBASE_DRIVER + str(driver_number) + ".json", data  = payload)
             if response.status_code == 200:
                 return 1
             else:
@@ -133,3 +107,18 @@ class Firebase:
             logging.error("Error while resetting status of driver in firebase drivers: " + str(e))
             return 0
 
+    @staticmethod
+    def start_trip(user_number):
+        try:
+            payload                     = {}
+            payload["status"]           = C.USER_IN_RIDE
+            payload                     = json.dumps(payload)
+            response                    = requests.patch(config.FIREBASE_USER + str(user_number) + ".json", data = payload)
+            if response.status_code == 200:
+                return 1
+            else:
+                logging.debug("Error in starting user ride")
+                return 0
+        except Exception as e:
+            logging.error("Error while starting user ride in firebase database of users: " + str(e))
+            return 0 

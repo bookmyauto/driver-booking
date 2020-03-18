@@ -1,7 +1,9 @@
 import logging
-
+import json
 
 class Response:
+    
+    default_error   = json.dumps({"error_code": 500, "error_message": "Internal server error", "display_message": ""})
     
     # Makes response
     @staticmethod
